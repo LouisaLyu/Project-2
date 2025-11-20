@@ -2,9 +2,11 @@ let readyStatus = document.querySelector('#readyStatus')
 let notReadyStatus = document.querySelector('#notReadyStatus')
 let myForm = document.querySelector('#myForm')
 let contentArea = document.querySelector('#contentArea')
-let formPopover = document.querySelector('#formPopover')
+let formDialog = document.querySelector('#formDialog')
 let createButton = document.querySelector('#createButton')
-let formHeading = document.querySelector('#formPopover h2')
+let saveButton = document.querySelector('#saveButton')
+let cancelButton = document.querySelector('#cancelButton')
+let formHeading = document.querySelector('.modal-header h2')
 
 // Get form data and process each type of input
 // Prepare the data as JSON with a proper set of types
@@ -42,9 +44,15 @@ myForm.addEventListener('submit', async event => {
     // prevent the page from reloading when the form is submitted.
     event.preventDefault()
     const data = getFormData()
+    // Normalize tags: comma-separated string -> array
+    if (data.tags && typeof data.tags === 'string') {
+        data.tags = data.tags.split(',').map(s => s.trim()).filter(Boolean)
+    } else {
+        data.tags = []
+    }
     await saveItem(data)
     myForm.reset()
-    formPopover.hidePopover()
+    if (formDialog && typeof formDialog.close === 'function') formDialog.close()
 })
 
 
@@ -115,15 +123,15 @@ const editItem = (data) => {
     })
 
     // Update the heading to indicate edit mode
-    formHeading.textContent = '🐈 Edit Cat'
+    formHeading.textContent = '📝 Edit Entry'
 
-    // Show the popover
-    formPopover.showPopover()
+    // Show the dialog
+    if (formDialog && typeof formDialog.showModal === 'function') formDialog.showModal()
 }
 
 // Delete item
 const deleteItem = async (id) => {
-    if (!confirm('Are you sure you want to delete this cat?')) {
+    if (!confirm('Are you sure you want to delete this entry?')) {
         return
     }
 
@@ -156,7 +164,7 @@ const calendarWidget = (date) => {
     const day = new Date(date).toLocaleString("en-CA", { day: '2-digit', timeZone: "UTC" })
     const year = new Date(date).toLocaleString("en-CA", { year: 'numeric', timeZone: "UTC" })
     return ` <div class="calendar">
-                <div class="born"><img src="./assets/birthday.svg" /></div>
+                <div class="born"><img src="./assets/note.svg" /></div>
                 <div class="month">${month}</div>
                 <div class="day">${day}</div> 
                 <div class="year">${year}</div>
@@ -172,62 +180,30 @@ const renderItem = (item) => {
 
     const template = /*html*/`  
     <div class="item-heading">
-        <h3> ${item.name} </h3>
-        <div class="microchip-info">
-            <img src="./assets/chip.svg" /> ${item.microchip || '<i>???</i>'} 
-        </div>  
+        <h3> ${item.title || item.topic || 'Untitled'} </h3>
+        <div class="meta-info">
+            <span class="date">${item.entryDate ? new Date(item.entryDate).toLocaleDateString() : ''}</span>
+            <span class="private">${item.isPrivate ? '🔒' : ''}</span>
+        </div>
     </div>
     <div class="item-info"> 
-        <div class="item-icon" style="
-            background: linear-gradient(135deg, 
-            ${item.primaryColor} 0%, 
-            ${item.primaryColor} 40%, 
-            ${item.secondaryColor} 60%, 
-            ${item.secondaryColor} 100%); 
-        ">
-        </div> 
-        <div class="stats">
-            <div class="stat">
-                <span>Playfulness</span>
-                <meter max="10" min="0" value="${item.playfulness || 0}"></meter> 
-            </div>
-            <div class="stat">
-                <span>Appetite</span>
-                <meter max="10" min="0" value="${item.appetite || 0}"></meter> 
-            </div>
-        </div> 
-            
-         ${calendarWidget(item.birthDate)}
-    </div>
-        
-    <div class="item-info">  
-        <section class="breed" style="${item.breed ? '' : 'display:none;'}">  
-            <img src="./assets/ribbon.svg" />  ${item.breed}
-        </section>
-        <section class="food" style="${item.food ? '' : 'display:none;'}">
-             <img src="./assets/${item.food}.svg" /> <span>${item.food} food</span>
-        </section> 
-        <section class="adoption">
-            <img src="./assets/${item.isAdopted ? 'adopted' : 'paw'}.svg" />
-            ${item.isAdopted ? 'Adopted' : 'Available'}
-        </section> 
-    </div>
-
-    <section class="description" style="${item.description ? '' : 'display:none;'}">  
-        <p>${item.description}</p>
-    </section>
-
-        
-           
-        <div class="item-actions">
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+        <div class="item-icon" style="background:${item.moodColor || '#ddd'}"></div>
+        <div class="excerpt">
+            <p>${item.body ? item.body.substring(0, 180) + (item.body.length > 180 ? '…' : '') : ''}</p>
+            <div class="tags">${(item.tags || []).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>
         </div>
+         ${calendarWidget(item.entryDate)}
+    </div>
+
+    <div class="item-actions">
+        <button class="edit-btn">Edit</button>
+        <button class="delete-btn">Delete</button>
+    </div>
     `
     div.innerHTML = DOMPurify.sanitize(template);
 
     // Add event listeners to buttons
-    div.querySelector('.edit-btn').addEventListener('click', () => editItem(item))
+        div.querySelector('.edit-btn').addEventListener('click', () => editItem(item))
     div.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id))
 
     return div
@@ -272,10 +248,21 @@ const getData = async () => {
 }
 
 // Revert to the default form title on reset
-myForm.addEventListener('reset', () => formHeading.textContent = '🐈 Share a Cat')
+myForm.addEventListener('reset', () => formHeading.textContent = '📝 New Journal Entry')
 
-// Reset the form when the create button is clicked. 
-createButton.addEventListener('click', myForm.reset())
+// Open dialog when create button clicked
+createButton.addEventListener('click', () => {
+    myForm.reset()
+    if (formDialog && typeof formDialog.showModal === 'function') formDialog.showModal()
+})
+
+// Close dialog when cancel button clicked
+if (cancelButton) cancelButton.addEventListener('click', () => {
+    if (formDialog && typeof formDialog.close === 'function') formDialog.close()
+})
+
+// Save button submits the form
+if (saveButton) saveButton.addEventListener('click', () => myForm.requestSubmit())
 
 // Load initial data
 getData()

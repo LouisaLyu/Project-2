@@ -7,24 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model cats {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  adoptionDate   DateTime? @db.Date
-  birthDate      DateTime? @db.Date
-  breed          String?
-  declawed       Boolean?
-  description    String?
-  fosterDate     DateTime? @db.Date
-  fosterDuration Int?
-  location       String?
-  name           String?
-  neutered       Boolean?
-  sex            String?
-  primaryColor   String?
-  secondaryColor String?
-  playfulness    Int?
-  appetite       Int?
-  microchip      Int?
-  isAdopted      Boolean?
-  food           String?
+
+
+model JournalEntry {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  entryDate  DateTime  @db.Date
+  topic      String
+  moodColor  String?
+  body       String
+  title      String?
+  tags       String[]
+  isPrivate  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt 
 }
