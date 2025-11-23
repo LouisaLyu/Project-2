@@ -311,6 +311,17 @@ textarea:user-invalid+.validation {
     box-shadow: 0 12px 24px rgba(0,0,0,0.18);
 }
 
+/* When a card has a dark background, apply white foreground to key text elements */
+.item-card.dark-foreground h3,
+.item-card.dark-foreground .topic,
+.item-card.dark-foreground .mood,
+.item-card.dark-foreground .tags,
+.item-card.dark-foreground .tag,
+.item-card.dark-foreground .excerpt p,
+.item-card.dark-foreground .date {
+    color: #ffffff;
+}
+
 .item-card h3 {
     font-size: 2rem;
     margin: 0 0 1rem 0;
@@ -360,19 +371,7 @@ textarea:user-invalid+.validation {
     font-weight: 600;
     color: #333;
 }
-.mood {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #333;
-}
-.mood-swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 3px;
-    border: 1px solid rgba(0,0,0,0.12);
-    display: inline-block;
-}
+.mood { /* removed: swatch/hex not shown */ }
 .tags {
     display: flex;
     gap: 0.4rem;

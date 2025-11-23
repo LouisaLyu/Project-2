@@ -61,6 +61,18 @@ const getBrightness = ({ r, g, b }) => {
     return (r * 299 + g * 587 + b * 114) / 1000
 }
 
+// Parse CSS color strings like 'rgb(51, 51, 51)' or 'rgba(51,51,51,1)' or hex '#333' '#ffffff'
+const parseCssColor = (str) => {
+    if (!str) return null
+    str = str.trim()
+    if (str.startsWith('rgb')) {
+        const parts = str.replace(/rgba?\(|\)/g, '').split(',').map(s => s.trim())
+        return { r: Number(parts[0]), g: Number(parts[1]), b: Number(parts[2]) }
+    }
+    if (str.startsWith('#')) return hexToRgb(str)
+    return null
+}
+
 
 // listen for form submissions  
 myForm.addEventListener('submit', async event => {
@@ -127,18 +139,6 @@ const saveItem = async (data) => {
 
 
 // Edit item - populate form with existing data
-
-    // Parse CSS color strings like 'rgb(51, 51, 51)' or 'rgba(51,51,51,1)' or hex '#333' '#ffffff'
-    const parseCssColor = (str) => {
-        if (!str) return null
-        str = str.trim()
-        if (str.startsWith('rgb')) {
-            const parts = str.replace(/rgba?|\(|\)/g, '').split(',').map(s => s.trim())
-            return { r: Number(parts[0]), g: Number(parts[1]), b: Number(parts[2]) }
-        }
-        if (str.startsWith('#')) return hexToRgb(str)
-        return null
-    }
 const editItem = (data) => {
     console.log('Editing:', data)
 
@@ -215,40 +215,14 @@ const renderItem = (item) => {
 
     // Apply the mood color to the card background instead of an icon
     div.style.background = item.moodColor ? item.moodColor : ''
-    // adjust text color for contrast: use white text when background is dark
-    const rgb = hexToRgb(item.moodColor)
-    if (rgb) {
-        const brightness = getBrightness(rgb)
-        // threshold 128: below this -> dark background
-        const darkBg = brightness < 128
-        // set container color (in case children inherit)
-        div.style.color = darkBg ? '#ffffff' : '#1a1a1a'
-
-        // Ensure elements that have their own CSS color get overridden when background is dark
-        const selectors = ['h3', '.topic', '.mood', '.tags', '.tag', '.excerpt p', '.date']
-        selectors.forEach(sel => {
-            div.querySelectorAll(sel).forEach(el => {
-                if (darkBg) el.style.color = '#ffffff'
-                else el.style.color = ''
-            })
-        })
-    } else {
-        // fallback to default text color
-        div.style.color = ''
-    }
 
     const template = /*html*/`  
     <div class="item-heading">
         <h3> ${item.title || 'Untitled'} </h3>
-        <div class="meta-info">
-            <span class="date">${item.entryDate ? new Date(item.entryDate).toLocaleDateString() : ''}</span>
-            <span class="private">${item.isPrivate ? '🔒 Private' : ''}</span>
-        </div>
     </div>
 
     <div class="item-subinfo">
         ${item.topic ? `<div class="topic">Topic: ${item.topic}</div>` : ''}
-        ${item.moodColor ? `<div class="mood"> <span class="mood-swatch" style="background:${item.moodColor}"></span></div>` : ''}
         ${(item.tags || []).length ? `<div class="tags">Tags: ${(item.tags || []).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>` : ''}
     </div>
 
@@ -266,8 +240,49 @@ const renderItem = (item) => {
     `
     div.innerHTML = DOMPurify.sanitize(template);
 
+    // Temporarily append to DOM while computing contrast
+    contentArea.appendChild(div)
+    try {
+        const rgbBg = hexToRgb(item.moodColor)
+        if (rgbBg) {
+            // WCAG contrast helpers
+            const toLinear = (c) => {
+                const s = c / 255
+                return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+            }
+            const relLuminance = (rgb) => {
+                const R = toLinear(rgb.r)
+                const G = toLinear(rgb.g)
+                const B = toLinear(rgb.b)
+                return 0.2126 * R + 0.7152 * G + 0.0722 * B
+            }
+            const contrastRatio = (a, b) => {
+                const L1 = relLuminance(a)
+                const L2 = relLuminance(b)
+                const lighter = Math.max(L1, L2)
+                const darker = Math.min(L1, L2)
+                return (lighter + 0.05) / (darker + 0.05)
+            }
+
+            const white = { r: 255, g: 255, b: 255 }
+            const contrastWithWhite = contrastRatio(rgbBg, white)
+
+            // WCAG AA for normal text requires 4.5:1 contrast
+            if (contrastWithWhite >= 4.5) {
+                div.classList.add('dark-foreground')
+            } else {
+                div.classList.remove('dark-foreground')
+            }
+        } else {
+            div.classList.remove('dark-foreground')
+        }
+    } finally {
+        // remove temporary placement
+        if (div.parentElement === contentArea) contentArea.removeChild(div)
+    }
+
     // Add event listeners to buttons
-        div.querySelector('.edit-btn').addEventListener('click', () => editItem(item))
+    div.querySelector('.edit-btn').addEventListener('click', () => editItem(item))
     div.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id))
 
     return div
