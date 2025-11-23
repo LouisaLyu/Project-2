@@ -199,7 +199,7 @@ const calendarWidget = (date) => {
     const day = new Date(date).toLocaleString("en-CA", { day: '2-digit', timeZone: "UTC" })
     const year = new Date(date).toLocaleString("en-CA", { year: 'numeric', timeZone: "UTC" })
     return ` <div class="calendar">
-                <div class="born"><img src="./assets/note.svg" /></div>
+                <div class="born">...</div>
                 <div class="month">${month}</div>
                 <div class="day">${day}</div> 
                 <div class="year">${year}</div>
@@ -212,6 +212,9 @@ const renderItem = (item) => {
     const div = document.createElement('div')
     div.classList.add('item-card')
     div.setAttribute('data-id', item.id)
+    div.style.margin = '10px 20px';
+    div.style.width = '25%';
+    div.style.wordBreak = 'break-word';
 
     // Apply the mood color to the card background instead of an icon
     div.style.background = item.moodColor ? item.moodColor : ''
@@ -223,12 +226,12 @@ const renderItem = (item) => {
 
     <div class="item-subinfo">
         ${item.topic ? `<div class="topic">Topic: ${item.topic}</div>` : ''}
-        ${(item.tags || []).length ? `<div class="tags">Tags: ${(item.tags || []).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>` : ''}
+        ${(item.tags || []).length ? `<div class="tags">Tags: ${(item.tags || []).map(t => `<span class="tag">${t}</span>`).join(' ')}</div>` : ''}
     </div>
 
     <div class="item-info"> 
         <div class="excerpt">
-            <p>${item.body ? item.body.substring(0, 180) + (item.body.length > 180 ? '…' : '') : ''}</p>
+            <p>${item.body}</p>
         </div>
          ${calendarWidget(item.entryDate)}
     </div>
