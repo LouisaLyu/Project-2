@@ -91,15 +91,17 @@ button.cancel:hover {
 
 
 #contentArea {
-    display: grid;
-    grid-template-columns: auto auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 /* Responsive layout for smaller screens */
-@media (max-width: 1200px) {
+@media (max-width: 480px) {
     #contentArea {
-        grid-template-columns: auto;
+        justify-content: center;
     }
 }
 
@@ -287,14 +289,26 @@ textarea:user-invalid+.validation {
 .item-card {
     border-radius: 1rem;
     padding: 1.5rem;
-    margin: 1rem 0;
-    background: #ffffff66;
+    margin: 0.5rem 0;
+    background: #ffffffcc;
     display: flex;
     flex-direction: column;
-    align-items: start;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     gap: 0.5rem;
     text-align: left;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    width: auto; /* allow card to size naturally */
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+    align-self: start;
+}
+
+.item-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.18);
 }
 
 .item-card h3 {
@@ -332,6 +346,43 @@ textarea:user-invalid+.validation {
 
 .item-info p {
     margin: 0.5rem 0;
+}
+
+/* Sub-info below the heading: topic, mood, tags */
+.item-subinfo {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+.item-subinfo .topic {
+    font-weight: 600;
+    color: #333;
+}
+.mood {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+}
+.mood-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.12);
+    display: inline-block;
+}
+.tags {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+.tag {
+    background: rgba(0,0,0,0.06);
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
 }
 
 section.breed,

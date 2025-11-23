@@ -50,7 +50,7 @@
     <div class="modal-container">
       <div class="modal-header">
         <h2>📝 New Journal Entry</h2>
-        <p>Write and save a journal entry</p>
+        <p>Put down what's on your mind</p>
       </div>
 
       <div class="modal-body">
@@ -58,14 +58,10 @@
           <!-- Hidden field to store ID for updates -->
           <input type="hidden" name="id" id="id" />
 
+          <!-- First line: Title, Topic, Date -->
           <fieldset>
             <label for="title">Title</label>
             <input type="text" name="title" id="title" placeholder="e.g. Reflections on Today" autocomplete="off" />
-          </fieldset>
-
-          <fieldset>
-            <label for="entryDate">Date</label>
-            <input type="date" name="entryDate" id="entryDate" required />
           </fieldset>
 
           <fieldset>
@@ -73,6 +69,12 @@
             <input type="text" name="topic" id="topic" placeholder="e.g. Work, Health, Personal" />
           </fieldset>
 
+          <fieldset>
+            <label for="entryDate">Date</label>
+            <input type="date" name="entryDate" id="entryDate" required />
+          </fieldset>
+
+          <!-- Second line: Mood Color, Tags -->
           <fieldset>
             <label for="moodColor">Mood Color</label>
             <input type="color" name="moodColor" id="moodColor" value="#ffcc00" />
@@ -83,11 +85,13 @@
             <input type="text" name="tags" id="tags" placeholder="comma, separated, tags" />
           </fieldset>
 
+          <!-- Third line: Private -->
           <fieldset>
             <label for="isPrivate">Private</label>
             <input type="checkbox" name="isPrivate" id="isPrivate" />
           </fieldset>
 
+          <!-- Entry body remains unchanged -->
           <fieldset>
             <label for="body">Entry</label>
             <textarea placeholder="Write your entry here..." required minlength="10" name="body" id="body" rows="8" cols="30"></textarea>
@@ -107,50 +111,8 @@
     <h2>📝 Journal Entries</h2>
     <section id="contentArea"></section>
   </main>
-
-  <section id="intro">
-    <h3>About</h3>
-    <p>Previously we explored approaches to <a
-        href="https://github.com/ixd-system-design/API-Endpoints-for-Publishing-and-Searching"
-      >Publishing Data</a> and <a href="https://github.com/ixd-system-design/Collecting-Data">Collecting Data</a> by
-      means of API Endpoints (backend) and HTML forms (frontend). Having thus addressed the first two letters of
-      <a href="https://developer.mozilla.org/en-US/docs/Glossary/CRUD">CRUD</a> ("Create" and Read"), let's now
-      implement the last two letters as well ("Update" and "Delete"). This will
-      allow us to manage the full lifecycle of data records in our database.
-    </p>
-    <p>In order to operate on existing documents, we need to identify them by ID. The following two endpoints will
-      assume that we pass along the ID of the item to be updated or deleted:
-    <ol>
-      <li>An Express endpoint listens for HTTP <a
-          href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PUT"
-        >PUT</a> requests, with an ID parameter and a body payload (the updated data). Prisma
-        finds the corresponding document in the database and replaces it with the new data.</li>
-      <li>An Express endpoint listens for HTTP <a
-          href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PUT"
-        >DELETE</a> requests, with an ID paramater passed along. Prisma finds the corresponding document and
-        removes it from the database.</li>
-    </ol>
-    </p>
-    <p>
-      To support these new operations on the frontend, we have adjusted the form behaviour. When editing an item, the
-      ID of the item is stored in a hidden input field. This allows us to track which item is being edited, and send
-      the correct ID to the backend when submitting updates. We also use the ID in the display template, so that the
-      Edit and Delete buttons can function correctly, and so that we can identify which item to remove when deleting.
-    </p>
-
-    <h3>Learning Prompts</h3>
-    <p>Can you add a connection string to the NodeJS environment (e.g. .env file) for your own MongoDB Atlas Cluster?
-    </p>
-    <p>Use MongoDB Compass to verify that your data collection form is working. </p>
-    <p>Try out all CRUD operations: Create a new cat, Edit an existing cat by clicking the Edit button, and Delete a cat
-      you no longer need.</p>
-    <p>Explore the API endpoints in your browser: visit /data to see all cats in JSON format, or try /search?terms=Sofia
-      to search for specific cats.</p>
-  </section>
-
+  
   <footer>
-    Created by <a href="https://nsitu.ca">Harold Sikkema</a> in the context of
-    Systems Design in the Interaction Design program at Sheridan College.
   </footer>
 
   <script

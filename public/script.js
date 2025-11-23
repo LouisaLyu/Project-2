@@ -38,6 +38,29 @@ const getFormData = () => {
     return json
 }
 
+// Helper: convert hex color (#rrggbb or #rgb) to {r,g,b}
+const hexToRgb = (hex) => {
+    if (!hex) return null
+    const cleaned = hex.replace('#', '').trim()
+    if (cleaned.length === 3) {
+        const r = cleaned[0] + cleaned[0]
+        const g = cleaned[1] + cleaned[1]
+        const b = cleaned[2] + cleaned[2]
+        return { r: parseInt(r, 16), g: parseInt(g, 16), b: parseInt(b, 16) }
+    }
+    if (cleaned.length !== 6) return null
+    return {
+        r: parseInt(cleaned.substring(0, 2), 16),
+        g: parseInt(cleaned.substring(2, 4), 16),
+        b: parseInt(cleaned.substring(4, 6), 16)
+    }
+}
+
+// Helper: simple perceived brightness (0-255)
+const getBrightness = ({ r, g, b }) => {
+    return (r * 299 + g * 587 + b * 114) / 1000
+}
+
 
 // listen for form submissions  
 myForm.addEventListener('submit', async event => {
@@ -104,6 +127,18 @@ const saveItem = async (data) => {
 
 
 // Edit item - populate form with existing data
+
+    // Parse CSS color strings like 'rgb(51, 51, 51)' or 'rgba(51,51,51,1)' or hex '#333' '#ffffff'
+    const parseCssColor = (str) => {
+        if (!str) return null
+        str = str.trim()
+        if (str.startsWith('rgb')) {
+            const parts = str.replace(/rgba?|\(|\)/g, '').split(',').map(s => s.trim())
+            return { r: Number(parts[0]), g: Number(parts[1]), b: Number(parts[2]) }
+        }
+        if (str.startsWith('#')) return hexToRgb(str)
+        return null
+    }
 const editItem = (data) => {
     console.log('Editing:', data)
 
@@ -178,19 +213,48 @@ const renderItem = (item) => {
     div.classList.add('item-card')
     div.setAttribute('data-id', item.id)
 
+    // Apply the mood color to the card background instead of an icon
+    div.style.background = item.moodColor ? item.moodColor : ''
+    // adjust text color for contrast: use white text when background is dark
+    const rgb = hexToRgb(item.moodColor)
+    if (rgb) {
+        const brightness = getBrightness(rgb)
+        // threshold 128: below this -> dark background
+        const darkBg = brightness < 128
+        // set container color (in case children inherit)
+        div.style.color = darkBg ? '#ffffff' : '#1a1a1a'
+
+        // Ensure elements that have their own CSS color get overridden when background is dark
+        const selectors = ['h3', '.topic', '.mood', '.tags', '.tag', '.excerpt p', '.date']
+        selectors.forEach(sel => {
+            div.querySelectorAll(sel).forEach(el => {
+                if (darkBg) el.style.color = '#ffffff'
+                else el.style.color = ''
+            })
+        })
+    } else {
+        // fallback to default text color
+        div.style.color = ''
+    }
+
     const template = /*html*/`  
     <div class="item-heading">
-        <h3> ${item.title || item.topic || 'Untitled'} </h3>
+        <h3> ${item.title || 'Untitled'} </h3>
         <div class="meta-info">
             <span class="date">${item.entryDate ? new Date(item.entryDate).toLocaleDateString() : ''}</span>
-            <span class="private">${item.isPrivate ? '🔒' : ''}</span>
+            <span class="private">${item.isPrivate ? '🔒 Private' : ''}</span>
         </div>
     </div>
+
+    <div class="item-subinfo">
+        ${item.topic ? `<div class="topic">Topic: ${item.topic}</div>` : ''}
+        ${item.moodColor ? `<div class="mood"> <span class="mood-swatch" style="background:${item.moodColor}"></span></div>` : ''}
+        ${(item.tags || []).length ? `<div class="tags">Tags: ${(item.tags || []).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>` : ''}
+    </div>
+
     <div class="item-info"> 
-        <div class="item-icon" style="background:${item.moodColor || '#ddd'}"></div>
         <div class="excerpt">
             <p>${item.body ? item.body.substring(0, 180) + (item.body.length > 180 ? '…' : '') : ''}</p>
-            <div class="tags">${(item.tags || []).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>
         </div>
          ${calendarWidget(item.entryDate)}
     </div>
