@@ -37,7 +37,6 @@
 <body>
   <header>
     <h1>Journal 4 You</h1>
-    <h4>Journal Entries</h4>
   </header>
   <section id="status">
     <p id="readyStatus">✅ MongoDB is Ready</p>
@@ -85,7 +84,11 @@
             <input type="text" name="tags" id="tags" placeholder="comma, separated, tags" />
           </fieldset>
 
-          <!-- Third line: Private (removed) -->
+          <!-- Third line: Private -->
+          <fieldset>
+            <label for="isPrivate">Private</label>
+            <input type="checkbox" name="isPrivate" id="isPrivate" />
+          </fieldset>
 
           <!-- Entry body remains unchanged -->
           <fieldset>

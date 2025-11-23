@@ -11,7 +11,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: rgb(238, 227, 144)
+    background-color: rgb(255, 249, 204)
 }
 
 
@@ -371,7 +371,7 @@ textarea:user-invalid+.validation {
     font-weight: 600;
     color: #333;
 }
-.mood { /* removed: swatch/hex not shown */ }
+
 .tags {
     display: flex;
     gap: 0.4rem;
