@@ -207,15 +207,29 @@ const calendarWidget = (date) => {
 
 }
 
+
+// Helper function for the layout
+const calcGridSpans = () =>{
+    const grid = document.querySelector('#contentArea');
+    const rowHeight = parseInt(window.getComputedStyle(grid).getPropertyValue('grid-auto-rows'));
+    const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('gap'));
+    const items = grid.querySelectorAll('.item-card'); 
+
+  items.forEach(item => {
+    const contentHeight = item.getBoundingClientRect().height;
+    const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
+    item.style.gridRowEnd = `span ${rowSpan}`;
+  });
+}
+
 // Render a single item
 const renderItem = (item) => {
     const div = document.createElement('div')
     div.classList.add('item-card')
     div.setAttribute('data-id', item.id)
     div.style.margin = '10px 20px';
-    div.style.width = '25%';
+    div.style.width = '100%';
     div.style.wordBreak = 'break-word';
-
     // Apply the mood color to the card background instead of an icon
     div.style.background = item.moodColor ? item.moodColor : ''
 
@@ -313,6 +327,8 @@ const getData = async () => {
                     const itemDiv = renderItem(item)
                     contentArea.appendChild(itemDiv)
                 })
+
+                calcGridSpans();
             }
         }
         else {
@@ -348,3 +364,10 @@ if (saveButton) saveButton.addEventListener('click', () => myForm.requestSubmit(
 
 // Load initial data
 getData()
+
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(calcGridSpans, 150);
+})
