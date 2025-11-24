@@ -244,7 +244,7 @@ const renderItem = (item) => {
     </div>
 
     <div class="item-info"> 
-        <div class="excerpt">
+        <div class="excerpt" style="width: 80%;">
             <p>${item.body}</p>
         </div>
          ${calendarWidget(item.entryDate)}
